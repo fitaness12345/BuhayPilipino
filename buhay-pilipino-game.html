@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buhay Pilipino: A Life Simulation</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Background texture from transparenttextures.com (free resource) */
+    body {
+      font-family: 'Open Sans', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+      background-image: url("https://www.transparenttextures.com/patterns/old-mat.png");
+      color: #333;
+    }
+
+    .game-container {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      border: 2px solid #0038A8; /* Philippine Blue */
+    }
+
+    .title {
+      text-align: center;
+      color: #CE1126; /* Philippine Red */
+      margin-bottom: 30px;
+      font-family: 'Lobster', cursive;
+    }
+
+    .title h1 {
+      margin-bottom: 5px;
+      font-size: 2.5em;
+    }
+
+    .title p {
+      font-style: italic;
+      margin-top: 0;
+      font-size: 1.2em;
+      color: #FCD116; /* Philippine Yellow */
+    }
+
+    .stats-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      border-left: 4px solid #CE1126; /* Red accent */
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .scenario {
+      margin-bottom: 20px;
+      padding: 20px;
+      background-color: #eef6ff;
+      border-radius: 8px;
+      border-left: 4px solid #0038A8; /* Blue accent */
+    }
+
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      padding: 15px;
+      border: none;
+      background: linear-gradient(145deg, #CE1126, #D9363D);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 1em;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .choice-btn:hover {
+      background: linear-gradient(145deg, #D9363D, #CE1126);
+      transform: scale(1.02);
+    }
+
+    .outcome {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e8f5e9;
+      border-radius: 8px;
+      border-left: 4px solid #4CAF50;
+      display: none;
+    }
+
+    .character-creation {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .background-option {
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .background-option:hover {
+      border-color: #0038A8;
+      background-color: #e0f0ff;
+    }
+
+    .background-option.selected {
+      border-color: #0038A8;
+      background-color: #dceeff;
+    }
+
+    .phase-indicator {
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      color: #0038A8;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="title">
+      <h1>Buhay Pilipino: A Life Simulation by Babsilog</h1>
+      <p>"Your choices define your journey."</p>
+    </div>
+
+    <!-- Character Creation Phase -->
+    <div id="character-creation-phase">
+      <div class="phase-indicator">Character Creation</div>
+      <h2>Choose your background:</h2>
+      <div class="character-creation">
+        <div class="background-option" data-background="middle-class">
+          <h3>Middle-class Student</h3>
+          <p>
+            You grew up in a comfortable middle-class family in the city. Your
+            parents both work stable jobs and have high expectations for your
+            future.
+          </p>
+          <p>
+            <strong>Starting Stats:</strong> 💰 Finances: 60, 😊 Happiness: 70,
+            ❤️ Relationships: 65, 📈 Career: 50
+          </p>
+        </div>
+        <div class="background-option" data-background="promdi">
+          <h3>Promdi Dreamer</h3>
+          <p>
+            You come from a simple family in the province. Despite limited
+            resources, you have big dreams of making it in the city someday.
+          </p>
+          <p>
+            <strong>Starting Stats:</strong> 💰 Finances: 40, 😊 Happiness: 75,
+            ❤️ Relationships: 80, 📈 Career: 35
+          </p>
+        </div>
+        <div class="background-option" data-background="ofw-kid">
+          <h3>OFW Kid</h3>
+          <p>
+            Your parent(s) work abroad to provide for the family. You grew up with
+            material comforts but often longed for their presence.
+          </p>
+          <p>
+            <strong>Starting Stats:</strong> 💰 Finances: 75, 😊 Happiness: 60,
+            ❤️ Relationships: 50, 📈 Career: 65
+          </p>
+        </div>
+      </div>
+      <button id="start-game" class="choice-btn" style="margin-top: 20px; display: none;">Begin Your Journey</button>
+    </div>
+
+    <!-- Main Game Phase -->
+    <div id="main-game-phase" class="hidden">
+      <!-- Stats Display -->
+      <div class="stats-container">
+        <div class="stat">
+          <div>💰</div>
+          <div>Finances</div>
+          <div id="finance-stat">50</div>
+        </div>
+        <div class="stat">
+          <div>😊</div>
+          <div>Happiness</div>
+          <div id="happiness-stat">50</div>
+        </div>
+        <div class="stat">
+          <div>❤️</div>
+          <div>Relationships</div>
+          <div id="relationship-stat">50</div>
+        </div>
+        <div class="stat">
+          <div>📈</div>
+          <div>Career</div>
+          <div id="career-stat">50</div>
+        </div>
+      </div>
+
+      <div class="phase-indicator">
+        <span id="age-display">Age: 18</span> | 
+        <span id="life-stage-display">Young Adult</span>
+      </div>
+
+      <!-- Scenario and Choices -->
+      <div class="scenario">
+        <p id="scenario-text">You've just graduated high school. Your parents have expectations about your future, but the decision is ultimately yours. What path will you take?</p>
+      </div>
+
+      <div class="choices" id="choices-container">
+        <!-- Choices will be inserted here by JavaScript -->
+      </div>
+
+      <!-- Outcome Display -->
+      <div class="outcome" id="outcome-container">
+        <p id="outcome-text"></p>
+        <button id="continue-btn" class="choice-btn">Continue</button>
+      </div>
+    </div>
+
+    <!-- Game Ending Phase -->
+    <div id="ending-phase" class="hidden">
+      <div class="phase-indicator">Your Life's Story</div>
+      <h2 id="ending-title">You've reached the end of your journey</h2>
+      <div class="scenario">
+        <p id="ending-description"></p>
+      </div>
+      <div class="stats-container">
+        <div class="stat">
+          <div>💰</div>
+          <div>Final Finances</div>
+          <div id="final-finance-stat">0</div>
+        </div>
+        <div class="stat">
+          <div>😊</div>
+          <div>Final Happiness</div>
+          <div id="final-happiness-stat">0</div>
+        </div>
+        <div class="stat">
+          <div>❤️</div>
+          <div>Final Relationships</div>
+          <div id="final-relationship-stat">0</div>
+        </div>
+        <div class="stat">
+          <div>📈</div>
+          <div>Final Career</div>
+          <div id="final-career-stat">0</div>
+        </div>
+      </div>
+      <button id="restart-game" class="choice-btn">Start a New Life</button>
+    </div>
+  </div>
+
+  <script>
+    // Game State including death flag
+    const gameState = {
+      age: 18,
+      lifeStage: "Young Adult",
+      background: "",
+      stats: {
+        finances: 50,
+        happiness: 50,
+        relationships: 50,
+        career: 50
+      },
+      history: [],
+      currentScenario: null,
+      causeOfDeath: "",
+      isDead: false
+    };
+
+    // DOM Elements
+    const characterCreationPhase = document.getElementById('character-creation-phase');
+    const mainGamePhase = document.getElementById('main-game-phase');
+    const endingPhase = document.getElementById('ending-phase');
+    const backgroundOptions = document.querySelectorAll('.background-option');
+    const startGameBtn = document.getElementById('start-game');
+    const choicesContainer = document.getElementById('choices-container');
+    const outcomeContainer = document.getElementById('outcome-container');
+    const outcomeText = document.getElementById('outcome-text');
+    const continueBtn = document.getElementById('continue-btn');
+    const restartGameBtn = document.getElementById('restart-game');
+
+    // Stats Elements
+    const financeStatEl = document.getElementById('finance-stat');
+    const happinessStatEl = document.getElementById('happiness-stat');
+    const relationshipStatEl = document.getElementById('relationship-stat');
+    const careerStatEl = document.getElementById('career-stat');
+    const ageDisplayEl = document.getElementById('age-display');
+    const lifeStageDisplayEl = document.getElementById('life-stage-display');
+
+// Scenario Database
+const scenarios = {
+  // Young Adult (18-25)
+  youngAdult: [
+    {
+      id: "college-choice",
+      text: "Your parents insist that you either study Physics or go abroad. What do you do?",
+      choices: [
+        {
+          text: "Follow their advice and take Physics.",
+          outcome: "You enroll in a Physics program. It's challenging but offers good job prospects.",
+          stats: { finances: -10, happiness: -5, relationships: +10, career: +15 }
+        },
+        {
+          text: "Pursue your passion in Arts.",
+          outcome: "Against your parents' wishes, you follow your heart. The initial years are challenging but fulfilling.",
+          stats: { finances: -15, happiness: +15, relationships: -10, career: +5 }
+        },
+        {
+          text: "Drop out and start a business.",
+          outcome: "You take a risk and start a small online business. Your parents are worried but somewhat supportive.",
+          stats: { finances: -20, happiness: +10, relationships: -5, career: +5 },
+          randomEvent: {
+            chance: 0.3,
+            event: {
+              text: "Your business unexpectedly goes viral! Orders are pouring in faster than you can handle.",
+              stats: { finances: +30, happiness: +10, career: +20 }
+            }
+          }
+        }
+      ]
+    },
+    {
+      id: "barkada-pressure",
+      text: "Your barkada invites you to go out drinking when you have an important exam/deadline tomorrow. What do you do?",
+      choices: [
+        {
+          text: "Go out with them. YOLO!",
+          outcome: "You have a great time but perform poorly on your exam/work the next day.",
+          stats: { finances: -10, happiness: +5, relationships: +15, career: -15 }
+        },
+        {
+          text: "Decline and focus on your responsibilities.",
+          outcome: "You ace your exam/work, but your friends tease you for being a 'KJ' (killjoy).",
+          stats: { finances: 0, happiness: -5, relationships: -10, career: +20 }
+        },
+        {
+          text: "Suggest an alternative hangout time after your deadline.",
+          outcome: "Your friends understand and reschedule. You manage to balance your social life and responsibilities.",
+          stats: { finances: 0, happiness: +5, relationships: +5, career: +10 }
+        }
+      ]
+    },
+    {
+      id: "job-offer-abroad",
+      text: "You receive a job offer abroad with good pay, but it means leaving your family and friends behind. What do you do?",
+      choices: [
+        {
+          text: "Take the job abroad.",
+          outcome: "You move abroad and start sending money back home. The transition is difficult but the pay is good.",
+          stats: { finances: +30, happiness: -10, relationships: -15, career: +20 }
+        },
+        {
+          text: "Decline and look for opportunities in the Philippines.",
+          outcome: "You find a decent job locally. The pay is lower, but you're close to loved ones.",
+          stats: { finances: +10, happiness: +15, relationships: +15, career: +5 }
+        },
+        {
+          text: "Negotiate for a temporary contract abroad.",
+          outcome: "You secure a 2-year contract, planning to save money and return to start something in the Philippines.",
+          stats: { finances: +20, happiness: 0, relationships: -5, career: +15 }
+        }
+      ]
+    },
+    {
+      id: "first-job-interview",
+      text: "You've been called for your first big job interview. How do you prepare?",
+      choices: [
+        {
+          text: "Research extensively and practice with friends.",
+          outcome: "Your thorough preparation impresses the interviewers. You answer questions confidently and professionally.",
+          stats: { finances: +5, happiness: +10, career: +15 }
+        },
+        {
+          text: "Rely on your natural charm and abilities.",
+          outcome: "You make a good impression personally, but struggle with some technical questions.",
+          stats: { happiness: +5, relationships: +5, career: +5 },
+          randomEvent: {
+            chance: 0.4,
+            event: {
+              text: "Despite the technical gaps, the interviewer likes your confidence and offers you the job!",
+              stats: { finances: +15, happiness: +15, career: +10 }
+            }
+          }
+        },
+        {
+          text: "Ask for connections from family or friends.",
+          outcome: "Your tito puts in a good word for you with the hiring manager.",
+          stats: { relationships: -5, career: +10 },
+          randomEvent: {
+            chance: 0.6,
+            event: {
+              text: "The connection works perfectly - you get hired with a better salary than expected!",
+              stats: { finances: +20, happiness: +10, career: +5 }
+            },
+            alternativeEvent: {
+              text: "Other employees find out you were hired through connections, leading to workplace tension.",
+              stats: { happiness: -10, relationships: -10 }
+            }
+          }
+        }
+      ]
+    },
+    {
+      id: "utang-na-loob",
+      text: "Your parents have sacrificed a lot for your education. Now that you're working, they expect you to help with family expenses. What do you do?",
+      choices: [
+        {
+          text: "Give a significant portion of your salary to your family.",
+          outcome: "Your parents are proud and grateful. Your siblings' education continues, but your personal savings suffer.",
+          stats: { finances: -20, happiness: +5, relationships: +20, career: 0 }
+        },
+        {
+          text: "Set boundaries and give only what you can comfortably afford.",
+          outcome: "You balance helping your family while building your own financial foundation. Your parents understand, though sometimes guilt trips occur.",
+          stats: { finances: -10, happiness: +10, relationships: +5, career: +5 }
+        },
+        {
+          text: "Focus on building your own life first.",
+          outcome: "You prioritize your independence and financial growth. Family relations become strained as they expected more support.",
+          stats: { finances: +15, happiness: -5, relationships: -20, career: +10 },
+          randomEvent: {
+            chance: 0.5,
+            event: {
+              text: "The strain from family rejection leads to severe depression. You struggle to cope with the emotional toll.",
+              stats: { happiness: -30, relationships: -10 }
+            },
+            alternativeEvent: {
+              text: "Your family disowns you due to lack of support, leading to depression and death.",
+              stats: { happiness: -50, relationships: -30 },
+              fatal: true
+            }
+          }
+        }
+      ]
+    }
+  ],
+
+  // Adult (26-40)
+  adult: [
+    {
+      id: "family-pressure-marriage",
+      text: "Your relatives keep asking when you'll get married at every family gathering. How do you handle this?",
+      choices: [
+        {
+          text: "Tell them you're focusing on your career first.",
+          outcome: "They seem disappointed but some understand your priorities.",
+          stats: { finances: +5, happiness: -5, relationships: -10, career: +10 }
+        },
+        {
+          text: "Consider their matchmaking suggestions.",
+          outcome: "You go on a few blind dates arranged by your titas. It's awkward but you're trying to be open-minded.",
+          stats: { finances: 0, happiness: 0, relationships: +10, career: -5 }
+        },
+        {
+          text: "Avoid family gatherings to escape the pressure.",
+          outcome: "You miss important family events but avoid the stress. Your parents are worried about you.",
+          stats: { finances: +5, happiness: +5, relationships: -20, career: +5 }
+        }
+      ]
+    },
+    {
+      id: "financial-emergency",
+      text: "A family member needs expensive medical treatment. They're asking for your help. What do you do?",
+      choices: [
+        {
+          text: "Give all the money you can to help them.",
+          outcome: "Your savings take a big hit, but your family member gets the needed treatment. Your family is grateful.",
+          stats: { finances: -30, happiness: -5, relationships: +25, career: 0 }
+        },
+        {
+          text: "Contribute a reasonable amount based on your budget.",
+          outcome: "You help without jeopardizing your own financial security. The family pools resources together.",
+          stats: { finances: -15, happiness: +5, relationships: +10, career: 0 }
+        },
+        {
+          text: "Explain that you can't afford to help right now.",
+          outcome: "Your family is disappointed, and you feel guilty. They find other ways to cover the expenses.",
+          stats: { finances: 0, happiness: -20, relationships: -20, career: 0 }
+        }
+      ]
+    },
+    {
+      id: "investment-opportunity",
+      text: "A friend offers you a chance to invest in their new business venture. It sounds promising but risky. What do you do?",
+      choices: [
+        {
+          text: "Invest a significant amount.",
+          outcome: "You take the risk and become a major stakeholder in the business.",
+          stats: { finances: -20, happiness: 0, relationships: +10, career: +5 },
+          randomEvent: {
+            chance: 0.5,
+            event: {
+              text: "The business flourishes beyond expectations! Your investment pays off tremendously.",
+              stats: { finances: +50, happiness: +20, career: +15 }
+            },
+            alternativeEvent: {
+              text: "Unfortunately, the business fails, and you lose your investment. Your friend feels terrible about it.",
+              stats: { finances: -30, happiness: -15, relationships: -10 }
+            }
+          }
+        },
+        {
+          text: "Invest a small amount just to try.",
+          outcome: "You participate without risking too much of your savings.",
+          stats: { finances: -10, happiness: +5, relationships: +5, career: 0 },
+          randomEvent: {
+            chance: 0.5,
+            event: {
+              text: "The business does well, giving you a decent return on your small investment.",
+              stats: { finances: +15, happiness: +10 }
+            },
+            alternativeEvent: {
+              text: "The business struggles but your losses are minimal thanks to your cautious approach.",
+              stats: { finances: -5, happiness: -5 }
+            }
+          }
+        },
+        {
+          text: "Politely decline the offer.",
+          outcome: "You wish your friend luck but keep your finances secure.",
+          stats: { finances: 0, happiness: 0, relationships: -5, career: 0 },
+          randomEvent: {
+            chance: 0.3,
+            event: {
+              text: "You hear that the business became very successful. You feel a twinge of regret for not investing.",
+              stats: { happiness: -10 }
+            }
+          }
+        }
+      ]
+    }
+  ],
+
+  // Midlife (41-60)
+  midlife: [
+    {
+      id: "career-crossroads",
+      text: "After years in your career, you're feeling burnt out. What do you do?",
+      choices: [
+        {
+          text: "Continue in your current path for stability.",
+          outcome: "You persevere through the burnout, focusing on the security your job provides.",
+          stats: { finances: +10, happiness: -15, relationships: -5, career: +5 }
+        },
+        {
+          text: "Take a risk and change careers.",
+          outcome: "You leave your comfort zone and pursue something new. The adjustment period is challenging.",
+          stats: { finances: -20, happiness: +10, relationships: 0, career: -10 },
+          randomEvent: {
+            chance: 0.4,
+            event: {
+              text: "Your career change turns out to be the best decision you've ever made! You feel rejuvenated.",
+              stats: { finances: +15, happiness: +25, career: +20 }
+            }
+          }
+        },
+        {
+          text: "Semi-retire and start a small passion project.",
+          outcome: "You scale back on your main career and dedicate time to something you truly enjoy.",
+          stats: { finances: -15, happiness: +20, relationships: +10, career: -5 }
+        }
+      ]
+    },
+    {
+      id: "empty-nest",
+      text: "Your children have grown up and moved out. How do you adjust to this new chapter?",
+      choices: [
+        {
+          text: "Focus on reconnecting with your spouse/partner.",
+          outcome: "You rediscover your relationship and enjoy quality time together after years of child-rearing.",
+          stats: { finances: 0, happiness: +15, relationships: +20, career: 0 }
+        },
+        {
+          text: "Develop new hobbies and interests.",
+          outcome: "You explore activities you never had time for before, finding new passions.",
+          stats: { finances: -5, happiness: +20, relationships: +5, career: 0 }
+        },
+        {
+          text: "Pour yourself into work or community service.",
+          outcome: "You channel your energy into productive endeavors, finding purpose in helping others.",
+          stats: { finances: +5, happiness: +10, relationships: +10, career: +10 }
+        }
+      ]
+    },
+    {
+      id: "retirement-planning",
+      text: "You need to make decisions about your retirement plans. What approach do you take?",
+      choices: [
+        {
+          text: "Save aggressively and live frugally now.",
+          outcome: "You cut back on expenses and maximize your retirement savings.",
+          stats: { finances: +25, happiness: -10, relationships: -5, career: 0 }
+        },
+        {
+          text: "Balance saving with enjoying life now.",
+          outcome: "You find a middle ground between preparing for the future and living in the present.",
+          stats: { finances: +10, happiness: +10, relationships: +5, career: 0 }
+        },
+        {
+          text: "Invest in a small business for passive income.",
+          outcome: "You put money into a venture that could provide ongoing income during retirement.",
+          stats: { finances: -10, happiness: +5, relationships: 0, career: +10 },
+          randomEvent: {
+            chance: 0.5,
+            event: {
+              text: "Your business investment thrives, providing more security than you expected.",
+              stats: { finances: +30, happiness: +15 }
+            },
+            alternativeEvent: {
+              text: "The business struggles, causing concern about your retirement security.",
+              stats: { finances: -20, happiness: -15 }
+            }
+          }
+        }
+      ]
+    }
+  ],
+
+  // Senior (61+)
+  senior: [
+    {
+      id: "retirement-life",
+      text: "You're now retired. How do you spend your golden years?",
+      choices: [
+        {
+          text: "Travel and explore places you've always wanted to visit.",
+          outcome: "You embark on adventures you've postponed for years, creating wonderful memories.",
+          stats: { finances: -20, happiness: +25, relationships: +5, career: 0 }
+        },
+        {
+          text: "Focus on family time and helping raise grandchildren.",
+          outcome: "You develop deep bonds with the younger generation while providing valuable support to your children.",
+          stats: { finances: -5, happiness: +15, relationships: +25, career: 0 }
+        },
+        {
+          text: "Volunteer or mentor others in your field.",
+          outcome: "You share your wisdom and experience, finding purpose in giving back.",
+          stats: { finances: -5, happiness: +20, relationships: +10, career: +5 }
+        }
+      ]
+    },
+    {
+      id: "health-challenges",
+      text: "You're facing some health issues common with aging. How do you approach this challenge?",
+      choices: [
+        {
+          text: "Follow medical advice strictly and prioritize health.",
+          outcome: "You diligently manage your health conditions, which helps maintain your quality of life.",
+          stats: { finances: -15, happiness: +10, relationships: +5, career: 0 }
+        },
+        {
+          text: "Balance treatment with maintaining your lifestyle.",
+          outcome: "You make reasonable adjustments while trying to preserve the activities you enjoy.",
+          stats: { finances: -10, happiness: +5, relationships: +5, career: 0 }
+        },
+        {
+          text: "Focus on natural remedies and alternative approaches.",
+          outcome: "You explore complementary treatments alongside conventional medicine.",
+          stats: { finances: -10, happiness: +5, relationships: 0, career: 0 },
+          randomEvent: {
+            chance: 0.4,
+            event: {
+              text: "Some of the alternative approaches significantly improve your wellbeing!",
+              stats: { happiness: +15, finances: -5 }
+            }
+          }
+        }
+      ]
+    },
+    {
+      id: "legacy-planning",
+      text: "You're thinking about your legacy and what you'll leave behind. What matters most to you?",
+      choices: [
+        {
+          text: "Financial security for your loved ones.",
+          outcome: "You carefully organize your affairs to provide for your family after you're gone.",
+          stats: { finances: -5, happiness: +10, relationships: +15, career: 0 }
+        },
+        {
+          text: "Sharing your wisdom and life stories.",
+          outcome: "You document your experiences and lessons, creating a personal legacy for future generations.",
+          stats: { finances: 0, happiness: +15, relationships: +10, career: +5 }
+        },
+        {
+          text: "Contributing to causes you believe in.",
+          outcome: "You dedicate resources and time to making a difference in areas you care about.",
+          stats: { finances: -10, happiness: +20, relationships: +5, career: 0 }
+        }
+      ]
+    }
+  ]
+};
+
+// Random Events Database
+const randomEvents = [
+  {
+    text: "You unexpectedly win a small lottery prize!",
+    stats: { finances: +20, happiness: +15 }
+  },
+  {
+    text: "A relative asks for financial help for their child's education.",
+    stats: { finances: -15, relationships: +10, happiness: -5 }
+  },
+  {
+    text: "You get scammed in an 'investment' scheme.",
+    stats: { finances: -25, happiness: -15 }
+  },
+  {
+    text: "A friend offers you a job opportunity with better pay.",
+    stats: { finances: +15, career: +10, happiness: +5 }
+  },
+  {
+    text: "You face unexpected medical expenses.",
+    stats: { finances: -20, happiness: -10 }
+  },
+  {
+    text: "A long-lost friend reconnects with you.",
+    stats: { relationships: +15, happiness: +10 }
+  },
+  {
+    text: "Your skills become highly in-demand in the job market.",
+    stats: { career: +20, finances: +15, happiness: +10 }
+  },
+  {
+    text: "There's a major typhoon that affects your region. You need to help with recovery efforts.",
+    stats: { finances: -10, relationships: +15, happiness: -5 }
+  },
+  {
+    text: "A distant relative asks you to become a ninong/ninang (godparent) to their child.",
+    stats: { finances: -5, relationships: +10, happiness: +5 }
+  },
+  {
+    text: "You're invited to a destination wedding that will be expensive to attend.",
+    stats: { finances: -15, relationships: +10, happiness: +5 }
+  },
+  {
+    text: "A family member working abroad sends you unexpected financial support.",
+    stats: { finances: +20, relationships: +10, happiness: +5 }
+  },
+  {
+    text: "A friend invites you to join a promising networking/MLM business.",
+    stats: { finances: -10, relationships: -5, happiness: -5 }
+  },
+  {
+    text: "Your social media post unexpectedly goes viral, bringing you brief local fame.",
+    stats: { relationships: +10, happiness: +15 }
+  },
+  {
+    text: "Your barangay selects you for a community leadership position.",
+    stats: { relationships: +15, career: +10, happiness: +5 }
+  }
+];
+
+    // Character Background Selection
+    backgroundOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        backgroundOptions.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+        startGameBtn.style.display = 'block';
+        gameState.background = this.dataset.background;
+        if (gameState.background === 'middle-class') {
+          gameState.stats.finances = 60;
+          gameState.stats.happiness = 70;
+          gameState.stats.relationships = 65;
+          gameState.stats.career = 50;
+        } else if (gameState.background === 'promdi') {
+          gameState.stats.finances = 40;
+          gameState.stats.happiness = 75;
+          gameState.stats.relationships = 80;
+          gameState.stats.career = 35;
+        } else if (gameState.background === 'ofw-kid') {
+          gameState.stats.finances = 75;
+          gameState.stats.happiness = 60;
+          gameState.stats.relationships = 50;
+          gameState.stats.career = 65;
+        }
+      });
+    });
+
+    // Start Game Button
+    startGameBtn.addEventListener('click', function() {
+      characterCreationPhase.classList.add('hidden');
+      mainGamePhase.classList.remove('hidden');
+      updateStatsDisplay();
+      loadScenario();
+    });
+
+    // Continue Button Logic
+    continueBtn.addEventListener('click', function() {
+      outcomeContainer.style.display = 'none';
+      gameState.age += Math.floor(Math.random() * 3) + 1;
+      updateLifeStage();
+      updateStatsDisplay();
+
+      // Age-related death chance
+      if (gameState.age >= 60) {
+        const deathRisk = Math.min(0.5, (gameState.age - 60) * 0.02);
+        if (Math.random() < deathRisk) {
+          gameState.isDead = true;
+          gameState.causeOfDeath = "Age-related health complications ended your journey.";
+        }
+      }
+
+      if (checkForEndingCondition()) {
+        endGame();
+      } else {
+        loadScenario();
+      }
+    });
+
+    // Restart Game Button
+    restartGameBtn.addEventListener('click', function() {
+      gameState.age = 18;
+      gameState.lifeStage = "Young Adult";
+      gameState.background = "";
+      gameState.stats = { finances: 50, happiness: 50, relationships: 50, career: 50 };
+      gameState.history = [];
+      gameState.currentScenario = null;
+      gameState.isDead = false;
+      gameState.causeOfDeath = "";
+      endingPhase.classList.add('hidden');
+      characterCreationPhase.classList.remove('hidden');
+      backgroundOptions.forEach(opt => opt.classList.remove('selected'));
+      startGameBtn.style.display = 'none';
+    });
+
+    // Helper Functions
+    function updateStats(stats) {
+      Object.entries(stats).forEach(([stat, value]) => {
+        gameState.stats[stat] = clampStat(gameState.stats[stat] + value);
+      });
+      updateStatsDisplay();
+    }
+
+    function updateStatsDisplay() {
+      financeStatEl.textContent = clampStat(gameState.stats.finances);
+      happinessStatEl.textContent = clampStat(gameState.stats.happiness);
+      relationshipStatEl.textContent = clampStat(gameState.stats.relationships);
+      careerStatEl.textContent = clampStat(gameState.stats.career);
+      ageDisplayEl.textContent = `Age: ${gameState.age}`;
+      lifeStageDisplayEl.textContent = gameState.lifeStage;
+    }
+
+    function clampStat(value) {
+      return Math.max(0, Math.min(100, value));
+    }
+
+    function updateLifeStage() {
+      if (gameState.age <= 25) {
+        gameState.lifeStage = "Young Adult";
+      } else if (gameState.age <= 40) {
+        gameState.lifeStage = "Adult";
+      } else if (gameState.age <= 60) {
+        gameState.lifeStage = "Midlife";
+      } else {
+        gameState.lifeStage = "Senior";
+      }
+    }
+
+    function getScenarioPool() {
+      if (gameState.age <= 25) {
+        return scenarios.youngAdult;
+      } else if (gameState.age <= 40) {
+        return scenarios.adult;
+      } else if (gameState.age <= 60) {
+        return scenarios.midlife;
+      } else {
+        return scenarios.senior;
+      }
+    }
+
+    // Only end the game when player is dead
+    function checkForEndingCondition() {
+      return gameState.isDead;
+    }
+
+    function loadScenario() {
+      const scenarioPool = getScenarioPool();
+      const recentScenarios = gameState.history.slice(-3);
+      const availableScenarios = scenarioPool.filter(scenario => !recentScenarios.includes(scenario.id));
+      let pool = availableScenarios.length > 0 ? availableScenarios : scenarioPool;
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      const scenario = pool[randomIndex];
+      gameState.currentScenario = scenario;
+      document.getElementById('scenario-text').textContent = scenario.text;
+      choicesContainer.innerHTML = '';
+      scenario.choices.forEach((choice, index) => {
+        const choiceBtn = document.createElement('button');
+        choiceBtn.className = 'choice-btn';
+        choiceBtn.textContent = choice.text;
+        choiceBtn.addEventListener('click', () => makeChoice(index));
+        choicesContainer.appendChild(choiceBtn);
+      });
+    }
+
+    function makeChoice(choiceIndex) {
+      const scenario = gameState.currentScenario;
+      const choice = scenario.choices[choiceIndex];
+      gameState.history.push(scenario.id);
+      updateStats(choice.stats);
+
+      if (choice.fatal) {
+        gameState.isDead = true;
+        gameState.causeOfDeath = choice.deathMessage;
+        outcomeText.textContent = `${choice.outcome}\n\n💀 ${choice.deathMessage}`;
+        outcomeContainer.style.display = 'block';
+        return;
+      }
+
+      outcomeText.textContent = choice.outcome;
+      outcomeContainer.style.display = 'block';
+
+      if (choice.randomEvent) {
+        const randomChance = Math.random();
+        if (randomChance < choice.randomEvent.chance) {
+          const event = choice.randomEvent.event;
+          outcomeText.textContent += "\n\n" + event.text;
+          updateStats(event.stats);
+          if (event.fatal) {
+            gameState.isDead = true;
+            gameState.causeOfDeath = event.text;
+          }
+        } else if (choice.randomEvent.alternativeEvent) {
+          const altEvent = choice.randomEvent.alternativeEvent;
+          outcomeText.textContent += "\n\n" + altEvent.text;
+          updateStats(altEvent.stats);
+          if (altEvent.fatal) {
+            gameState.isDead = true;
+            gameState.causeOfDeath = altEvent.text;
+          }
+        }
+      } else if (Math.random() < 0.3) {
+        triggerRandomLifeEvent();
+      }
+    }
+
+    // triggerRandomLifeEvent function
+    function triggerRandomLifeEvent() {
+      if (Math.random() < 0.07) {
+        const deaths = [
+          { msg: "A sudden heart attack struck you.", cause: "Cardiac arrest" },
+          { msg: "You were caught in a tragic accident.", cause: "Fatal accident" },
+          { msg: "A severe illness took your life.", cause: "Critical illness" }
+        ];
+        const death = deaths[Math.floor(Math.random() * deaths.length)];
+        outcomeText.textContent += `\n\n💀 ${death.msg}`;
+        gameState.causeOfDeath = death.cause;
+        gameState.isDead = true;
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * randomEvents.length);
+      const event = randomEvents[randomIndex];
+      outcomeText.textContent += "\n\n🎲 RANDOM EVENT: " + event.text;
+      updateStats(event.stats);
+    }
+
+    // endGame function
+    function endGame() {
+      mainGamePhase.classList.add('hidden');
+      endingPhase.classList.remove('hidden');
+      
+      // Update final stats
+      document.getElementById('final-finance-stat').textContent = gameState.stats.finances;
+      document.getElementById('final-happiness-stat').textContent = gameState.stats.happiness;
+      document.getElementById('final-relationship-stat').textContent = gameState.stats.relationships;
+      document.getElementById('final-career-stat').textContent = gameState.stats.career;
+
+      // Determine ending based on death cause
+      const endingTitle = "Game Over - You Have Died";
+      const endingDescription = gameState.causeOfDeath || "Your journey has ended unexpectedly.";
+
+      document.getElementById('ending-title').textContent = endingTitle;
+      document.getElementById('ending-description').textContent = endingDescription;
+    }
+  </script>
+</body>
+</html>
